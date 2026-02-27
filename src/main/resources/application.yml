@@ -7,7 +7,7 @@ spring:
       uri: mongodb://localhost:27017/sportsdb
 
 jwt:
-  secret: yourSecretKeyHere
+  secret: 12345678901234567890123456789012
   expiration: 86400000
 
 server:
