@@ -1,8 +1,10 @@
 package com.example.sports.controller;
 
+import com.example.sports.model.Match;
 import com.example.sports.model.Player;
 import com.example.sports.model.Team;
 import com.example.sports.model.User;
+import com.example.sports.repository.MatchRepository;
 import com.example.sports.repository.TeamRepository;
 import com.example.sports.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class CoachController {
 
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
+    private final MatchRepository matchRepository;
 
 
     // Team create
@@ -138,4 +141,71 @@ public class CoachController {
 
         return teamRepository.save(team);
     }
+
+    // Match Create
+    @PostMapping("/create-match")
+    @PreAuthorize("hasRole('COACH')")
+    public Match createMatch(@RequestBody Match match) {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String email = authentication.getName();
+
+        User coach = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Coach not found"));
+
+        Team teamA = teamRepository.findById(match.getTeamAId())
+                .orElseThrow(() -> new RuntimeException("Team A not found"));
+
+        Team teamB = teamRepository.findById(match.getTeamBId())
+                .orElseThrow(() -> new RuntimeException("Team B not found"));
+
+        //  Same team check
+        if (teamA.getId().equals(teamB.getId())) {
+            throw new RuntimeException("Both teams cannot be same");
+        }
+
+        //  Same sport check
+        if (!teamA.getSportName().equals(teamB.getSportName())) {
+            throw new RuntimeException("Teams must belong to same sport");
+        }
+
+        //  Coach ownership check
+        if (!teamA.getCoachId().equals(coach.getId()) ||
+                !teamB.getCoachId().equals(coach.getId())) {
+            throw new RuntimeException("You can only create match for your teams");
+        }
+
+        match.setSportName(teamA.getSportName());
+        match.setStatus("SCHEDULED");
+
+        return matchRepository.save(match);
+    }
+
+    // update Match
+    @PutMapping("/update-match/{matchId}")
+    @PreAuthorize("hasRole('COACH')")
+    public Match updateMatch(@PathVariable String matchId,
+                             @RequestParam String winnerTeamId,
+                             @RequestParam String status) {
+
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
+
+        match.setWinnerTeamId(winnerTeamId);
+        match.setStatus(status);
+
+        return matchRepository.save(match);
+    }
+
+
+    // Match history
+    @GetMapping("/team/{teamId}/matches")
+    @PreAuthorize("hasRole('COACH')")
+    public List<Match> getTeamMatches(@PathVariable String teamId) {
+
+        return matchRepository.findByTeamAIdOrTeamBId(teamId, teamId);
+    }
+
 }
