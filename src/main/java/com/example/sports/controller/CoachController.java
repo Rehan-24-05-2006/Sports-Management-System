@@ -189,6 +189,10 @@ public class CoachController {
             throw new RuntimeException("You can only create match for your teams");
         }
 
+        if (!teamA.getSportName().equals(match.getSportName())) {
+            throw new RuntimeException("Sport mismatch");
+        }
+
         match.setSportName(teamA.getSportName());
         match.setCoachId(coach.getId());
         match.setStatus("SCHEDULED");
@@ -210,6 +214,18 @@ public class CoachController {
         match.setStatus(status);
 
         return matchRepository.save(match);
+    }
+
+    // Show All Matches
+    @GetMapping("/my-matches")
+    @PreAuthorize("hasRole('COACH')")
+    public List<Match> getMyMatches(Authentication authentication) {
+
+        String email = authentication.getName();
+        User coach = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Coach not found"));
+
+        return matchRepository.findByCoachId(coach.getId());
     }
 
 
