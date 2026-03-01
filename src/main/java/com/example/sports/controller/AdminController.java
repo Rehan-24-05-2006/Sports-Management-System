@@ -19,14 +19,14 @@ public class AdminController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // ✅ Create Sport
+    //  Create Sport
     @PostMapping("/create-sport")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public Sport createSport(@RequestBody Sport sport) {
         return sportRepository.save(sport);
     }
 
-    // ✅ Create Coach
+    //  Create Coach
     @PostMapping("/create-coach")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public User createCoach(@RequestBody User user) {
@@ -37,7 +37,7 @@ public class AdminController {
         return userRepository.save(user);
     }
 
-    // ✅ Delete Coach
+    //  Delete Coach
     @DeleteMapping("/delete-coach/{id}")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public String deleteCoach(@PathVariable String id) {

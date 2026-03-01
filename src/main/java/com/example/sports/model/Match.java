@@ -19,6 +19,8 @@ public class Match {
 
     private String sportName;
 
+    private String coachId;
+
     private String teamAId;
     private String teamBId;
 

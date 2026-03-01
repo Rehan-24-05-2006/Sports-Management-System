@@ -1,5 +1,6 @@
 package com.example.sports.service;
 
+import com.example.sports.dto.AuthResponse;
 import com.example.sports.dto.LoginRequest;
 import com.example.sports.dto.RegisterRequest;
 import com.example.sports.model.Role;
@@ -31,7 +32,7 @@ public class AuthService {
         return "User Registered Successfully";
     }
 
-    public String login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -40,6 +41,8 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        return jwtService.generateToken(user);
+        String token = jwtService.generateToken(user);
+
+        return new AuthResponse(token, user.getRole().name());
     }
 }

@@ -14,7 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/coach")
@@ -142,6 +144,16 @@ public class CoachController {
         return teamRepository.save(team);
     }
 
+    // Team Delete
+    @DeleteMapping("/delete-team/{teamId}")
+    @PreAuthorize("hasRole('COACH')")
+    public String deleteTeam(@PathVariable String teamId) {
+
+        teamRepository.deleteById(teamId);
+
+        return "Team deleted successfully";
+    }
+
     // Match Create
     @PostMapping("/create-match")
     @PreAuthorize("hasRole('COACH')")
@@ -178,6 +190,7 @@ public class CoachController {
         }
 
         match.setSportName(teamA.getSportName());
+        match.setCoachId(coach.getId());
         match.setStatus("SCHEDULED");
 
         return matchRepository.save(match);
@@ -200,12 +213,48 @@ public class CoachController {
     }
 
 
+    // Delete Match
+    @DeleteMapping("/delete-match/{matchId}")
+    @PreAuthorize("hasRole('COACH')")
+    public String deleteMatch(@PathVariable String matchId) {
+
+        matchRepository.deleteById(matchId);
+
+        return "Match deleted successfully";
+    }
+
     // Match history
     @GetMapping("/team/{teamId}/matches")
     @PreAuthorize("hasRole('COACH')")
     public List<Match> getTeamMatches(@PathVariable String teamId) {
 
         return matchRepository.findByTeamAIdOrTeamBId(teamId, teamId);
+    }
+
+    @GetMapping("/dashboard")
+    @PreAuthorize("hasRole('COACH')")
+    public Map<String, Object> getDashboardData() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String email = authentication.getName();
+
+        User coach = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Coach not found"));
+
+        List<Team> teams = teamRepository.findByCoachId(coach.getId());
+
+        List<Match> matches = matchRepository.findByCoachId(coach.getId());
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("coachName", coach.getName());
+        data.put("totalTeams", teams.size());
+        data.put("totalMatches", matches.size());
+        data.put("teams", teams);
+        data.put("matches", matches);
+
+        return data;
     }
 
 }

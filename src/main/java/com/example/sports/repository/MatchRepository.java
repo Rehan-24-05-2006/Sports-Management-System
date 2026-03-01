@@ -13,4 +13,5 @@ public interface MatchRepository extends MongoRepository<Match, String> {
 
     List<Match> findByTeamAIdOrTeamBId(String teamAId, String teamBId);
 
+    List<Match> findByCoachId(String id);
 }
