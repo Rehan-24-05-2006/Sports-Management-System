@@ -107,41 +107,57 @@ public class CoachController {
         return teamRepository.save(team);
     }
 
-    // Player update API
-    @PutMapping("/update-player/{teamId}/{email}")
+//    // Player update API
+//    @PutMapping("/update-player/{teamId}/{email}")
+//    @PreAuthorize("hasRole('COACH')")
+//    public Team updatePlayer(@PathVariable String teamId,
+//                             @PathVariable String email,
+//                             @RequestBody Player updatedPlayer) {
+//
+//        Team team = teamRepository.findById(teamId)
+//                .orElseThrow(() -> new RuntimeException("Team not found"));
+//
+//        if (team.getPlayers() == null) {
+//            throw new RuntimeException("No players in this team");
+//        }
+//
+//        boolean found = false;
+//
+//        for (Player player : team.getPlayers()) {
+//            if (player.getEmail().equals(email)) {
+//
+//                player.setPlayerName(updatedPlayer.getPlayerName());
+//                player.setYear(updatedPlayer.getYear());
+//                player.setBranch(updatedPlayer.getBranch());
+//                player.setCollegeId(updatedPlayer.getCollegeId());
+//                player.setPhone(updatedPlayer.getPhone());
+//
+//                found = true;
+//                break;
+//            }
+//        }
+//
+//        if (!found) {
+//            throw new RuntimeException("Player not found");
+//        }
+//
+//        return teamRepository.save(team);
+//    }
+
+    // Get Single Player
+    @GetMapping("/team/{teamId}/player/{email}")
     @PreAuthorize("hasRole('COACH')")
-    public Team updatePlayer(@PathVariable String teamId,
-                             @PathVariable String email,
-                             @RequestBody Player updatedPlayer) {
+    public Player getPlayer(
+            @PathVariable String teamId,
+            @PathVariable String email) {
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
 
-        if (team.getPlayers() == null) {
-            throw new RuntimeException("No players in this team");
-        }
-
-        boolean found = false;
-
-        for (Player player : team.getPlayers()) {
-            if (player.getEmail().equals(email)) {
-
-                player.setPlayerName(updatedPlayer.getPlayerName());
-                player.setYear(updatedPlayer.getYear());
-                player.setBranch(updatedPlayer.getBranch());
-                player.setCollegeId(updatedPlayer.getCollegeId());
-                player.setPhone(updatedPlayer.getPhone());
-
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            throw new RuntimeException("Player not found");
-        }
-
-        return teamRepository.save(team);
+        return team.getPlayers().stream()
+                .filter(player -> player.getEmail().equals(email))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Player not found"));
     }
 
     // Team Delete
@@ -189,9 +205,9 @@ public class CoachController {
             throw new RuntimeException("You can only create match for your teams");
         }
 
-        if (!teamA.getSportName().equals(match.getSportName())) {
-            throw new RuntimeException("Sport mismatch");
-        }
+//        if (!teamA.getSportName().equals(match.getSportName())) {
+//            throw new RuntimeException("Sport mismatch");
+//        }
 
         match.setSportName(teamA.getSportName());
         match.setCoachId(coach.getId());
